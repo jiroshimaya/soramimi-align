@@ -1,0 +1,34 @@
+[project]
+name = "soramimi-align"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "GitHub Actions", email = "actions@github.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "alkana>=0.0.3",
+    "editdistance>=0.8.1",
+    "ipadic>=1.0.0",
+    "jaconv>=0.4.0",
+    "jamorasep>=0.0.1",
+    "mecab-python3>=1.0.10",
+    "pandas>=2.2.3",
+    "sudachidict-full>=20241021",
+    "sudachipy>=0.6.9",
+    "tqdm>=4.67.1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "ipykernel>=6.29.5",
+    "ipython>=8.30.0",
+    "neologdn>=0.5.3",
+    "pyperclip>=1.9.0",
+    "pytest>=8.3.4",
+]
