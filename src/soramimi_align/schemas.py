@@ -274,3 +274,19 @@ class AnalyzedLyrics:
             )
             analyzed_words.append(analyzed_word)
         return analyzed_words
+
+
+@dataclass
+class AlignedMora:
+    parody_mora: str
+    is_parody_word_start: bool
+    is_parody_word_end: bool
+    original_mora: str
+    is_original_phrase_start: bool
+    is_original_phrase_end: bool
+    line_id: str = ""
+    input_file_path: str = ""
+    parody_vowel: str = ""
+    original_vowel: str = ""
+    parody_consonant: str = ""
+    original_consonant: str = ""
