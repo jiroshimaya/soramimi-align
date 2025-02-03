@@ -262,13 +262,15 @@ class AnalyzedLyrics:
         analyzed_words = []
         for surface, pronunciation in zip(surfaces, pronunciations):
             pronunciation_tokens = pronunciation.split("/")
-            if len(pronunciation_tokens) > 1 and pronunciation_tokens[0] == "p":
+            if len(pronunciation_tokens) > 1 and pronunciation_tokens[1] == "p":
                 is_phrase_start = True
             else:
                 is_phrase_start = False
 
             analyzed_word = AnalyzedWordItem(
-                surface=surface, pronunciation=surface, is_phrase_start=is_phrase_start
+                surface=surface,
+                pronunciation=pronunciation_tokens[0],
+                is_phrase_start=is_phrase_start,
             )
             analyzed_words.append(analyzed_word)
         return analyzed_words

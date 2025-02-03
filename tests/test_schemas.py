@@ -2,7 +2,12 @@ import os
 import sys
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from soramimi_align.schemas import AthleteName, AthleteParodyLyrics
+from soramimi_align.schemas import (
+    AnalyzedLyrics,
+    AnalyzedWordItem,
+    AthleteName,
+    AthleteParodyLyrics,
+)
 
 
 def test_lyrics_from_text():
@@ -87,4 +92,36 @@ def test_athlete_name_from_text():
     assert name.pronunciation == ""
 
 
-test_athlete_name_from_text()
+def test_analyzed_lyrics_from_text():
+    text = """
+    イチロー 大谷 有
+    イチロー オオタニ ユウ
+    風 の 中 の すばる
+    カゼ/p ノ ナカ/p ノ スバル/p"""
+
+    analyzed_lyrics = AnalyzedLyrics.from_text(text)
+
+    assert analyzed_lyrics.parody[0][0] == AnalyzedWordItem(
+        surface="イチロー", pronunciation="イチロー", is_phrase_start=False, memo={}
+    )
+    assert analyzed_lyrics.parody[0][1] == AnalyzedWordItem(
+        surface="大谷", pronunciation="オオタニ", is_phrase_start=False, memo={}
+    )
+    assert analyzed_lyrics.parody[0][2] == AnalyzedWordItem(
+        surface="有", pronunciation="ユウ", is_phrase_start=False, memo={}
+    )
+    assert analyzed_lyrics.original[0][0] == AnalyzedWordItem(
+        surface="風", pronunciation="カゼ", is_phrase_start=True, memo={}
+    )
+    assert analyzed_lyrics.original[0][1] == AnalyzedWordItem(
+        surface="の", pronunciation="ノ", is_phrase_start=False, memo={}
+    )
+    assert analyzed_lyrics.original[0][2] == AnalyzedWordItem(
+        surface="中", pronunciation="ナカ", is_phrase_start=True, memo={}
+    )
+    assert analyzed_lyrics.original[0][3] == AnalyzedWordItem(
+        surface="の", pronunciation="ノ", is_phrase_start=False, memo={}
+    )
+    assert analyzed_lyrics.original[0][4] == AnalyzedWordItem(
+        surface="すばる", pronunciation="スバル", is_phrase_start=True, memo={}
+    )
