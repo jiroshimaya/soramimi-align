@@ -300,39 +300,39 @@ def test_align_analyzed_lyrics():
     idx = 0
     assert results[idx].parody_mora == "ド"
     assert results[idx].original_mora == "ソ"
-    assert results[idx].is_original_phrase_start == True
-    assert results[idx].is_original_phrase_end == False
-    assert results[idx].is_original_word_start == True
-    assert results[idx].is_original_word_end == False
+    assert results[idx].is_original_phrase_start
+    assert not results[idx].is_original_phrase_end
+    assert results[idx].is_original_word_start
+    assert not results[idx].is_original_word_end
 
     idx = 1
     assert results[idx].parody_mora == "ン"
     assert results[idx].original_mora == ""
-    assert results[idx].is_original_phrase_start == False
-    assert results[idx].is_original_phrase_end == False
-    assert results[idx].is_original_word_start == False
-    assert results[idx].is_original_word_end == False
+    assert not results[idx].is_original_phrase_start
+    assert not results[idx].is_original_phrase_end
+    assert not results[idx].is_original_word_start
+    assert not results[idx].is_original_word_end
 
     idx = 2
     assert results[idx].parody_mora == "ド"
     assert results[idx].original_mora == "ト"
-    assert results[idx].is_original_phrase_start == False
-    assert results[idx].is_original_phrase_end == True
-    assert results[idx].is_original_word_start == False
-    assert results[idx].is_original_word_end == True
+    assert not results[idx].is_original_phrase_start
+    assert results[idx].is_original_phrase_end
+    assert not results[idx].is_original_word_start
+    assert results[idx].is_original_word_end
 
     idx = 3
     assert results[idx].parody_mora == "ン"
     assert results[idx].original_mora == ""
-    assert results[idx].is_original_phrase_start == True
-    assert results[idx].is_original_phrase_end == True
-    assert results[idx].is_original_word_start == True
-    assert results[idx].is_original_word_end == True
+    assert results[idx].is_original_phrase_start
+    assert results[idx].is_original_phrase_end
+    assert results[idx].is_original_word_start
+    assert results[idx].is_original_word_end
 
     idx = 4
     assert results[idx].parody_mora == "ト"
     assert results[idx].original_mora == "ヨ"
-    assert results[idx].is_original_phrase_start == True
-    assert results[idx].is_original_phrase_end == True
-    assert results[idx].is_original_word_start == True
-    assert results[idx].is_original_word_end == True
+    assert results[idx].is_original_phrase_start
+    assert results[idx].is_original_phrase_end
+    assert results[idx].is_original_word_start
+    assert results[idx].is_original_word_end
