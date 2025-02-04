@@ -284,6 +284,8 @@ class AlignedMora:
     original_mora: str
     is_original_phrase_start: bool
     is_original_phrase_end: bool
+    is_original_word_start: bool
+    is_original_word_end: bool
     line_id: str = ""
     input_file_path: str = ""
     parody_vowel: str = ""

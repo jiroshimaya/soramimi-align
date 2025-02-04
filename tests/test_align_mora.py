@@ -9,7 +9,7 @@ from soramimi_align.align_mora import (
     find_correspondance,
     split_consonant_vowel,
 )
-from soramimi_align.schemas import AnalyzedLyrics
+from soramimi_align.schemas import AlignedMora, AnalyzedLyrics
 
 
 def test_split_consonant_vowel():
@@ -44,9 +44,9 @@ def test_find_correspondance():
             result.append((reference_moras[start:end], input_mora))
         return result
 
-    assert wrapper("ああ", "ああ") == [("あ", "あ"), ("あ", "あ")]
-    assert wrapper("くどう", "かと") == [("く", "か"), ("どう", "と")]
-    assert wrapper("どう", "とん") == [("ど", "と"), ("う", "ん")]
+    assert wrapper("アア", "アア") == [("ア", "ア"), ("ア", "ア")]
+    assert wrapper("クドウ", "カト") == [("ク", "カ"), ("ドウ", "ト")]
+    assert wrapper("ドウ", "トン") == [("ド", "ト"), ("ウ", "ン")]
     assert wrapper("トントン", "ソコ") == [("ト", "ソ"), ("ントン", "コ")]
     assert wrapper("ソコ", "トントン") == [
         ("ソ", "ト"),
@@ -62,123 +62,277 @@ def test_align_analyzed_lyrics():
     アベ クルーン イセ クドウ ナカノ
     荒れ 狂う 季節 の 中 を
     アレ/p クルウ/p キセツ/p ノ ナカ/p オ"""
+    analyzed_lyrics = AnalyzedLyrics.from_text(text)
+    results = align_analyzed_lyrics(analyzed_lyrics)
 
+    assert results[0] == AlignedMora(
+        parody_mora="ア",
+        original_mora="ア",
+        parody_vowel="a",
+        original_vowel="a",
+        parody_consonant="",
+        original_consonant="",
+        is_parody_word_start=True,
+        is_parody_word_end=False,
+        is_original_phrase_start=True,
+        is_original_phrase_end=False,
+        is_original_word_start=True,
+        is_original_word_end=False,
+        line_id="0",
+    )
+
+    assert results[1] == AlignedMora(
+        parody_mora="ベ",
+        original_mora="レ",
+        parody_vowel="e",
+        original_vowel="e",
+        parody_consonant="b",
+        original_consonant="r",
+        is_parody_word_start=False,
+        is_parody_word_end=True,
+        is_original_phrase_start=False,
+        is_original_phrase_end=True,
+        is_original_word_start=False,
+        is_original_word_end=True,
+        line_id="0",
+    )
+
+    assert results[2] == AlignedMora(
+        parody_mora="ク",
+        original_mora="ク",
+        parody_vowel="u",
+        original_vowel="u",
+        parody_consonant="k",
+        original_consonant="k",
+        is_parody_word_start=True,
+        is_parody_word_end=False,
+        is_original_phrase_start=True,
+        is_original_phrase_end=False,
+        is_original_word_start=True,
+        is_original_word_end=False,
+        line_id="0",
+    )
+
+    assert results[3] == AlignedMora(
+        parody_mora="ル",
+        original_mora="ル",
+        parody_vowel="u",
+        original_vowel="u",
+        parody_consonant="r",
+        original_consonant="r",
+        is_parody_word_start=False,
+        is_parody_word_end=False,
+        is_original_phrase_start=False,
+        is_original_phrase_end=False,
+        is_original_word_start=False,
+        is_original_word_end=False,
+        line_id="0",
+    )
+
+    assert results[4] == AlignedMora(
+        parody_mora="ー",
+        original_mora="",
+        parody_vowel=":",
+        original_vowel="",
+        parody_consonant="",
+        original_consonant="",
+        is_parody_word_start=False,
+        is_parody_word_end=False,
+        is_original_phrase_start=False,
+        is_original_phrase_end=False,
+        is_original_word_start=False,
+        is_original_word_end=False,
+        line_id="0",
+    )
+
+    assert results[5] == AlignedMora(
+        parody_mora="ン",
+        original_mora="ウ",
+        parody_vowel="N",
+        original_vowel="u",
+        parody_consonant="",
+        original_consonant="",
+        is_parody_word_start=False,
+        is_parody_word_end=True,
+        is_original_phrase_start=False,
+        is_original_phrase_end=True,
+        is_original_word_start=False,
+        is_original_word_end=True,
+        line_id="0",
+    )
+
+    assert results[6] == AlignedMora(
+        parody_mora="イ",
+        original_mora="キ",
+        parody_vowel="i",
+        original_vowel="i",
+        parody_consonant="",
+        original_consonant="kj",
+        is_parody_word_start=True,
+        is_parody_word_end=False,
+        is_original_phrase_start=True,
+        is_original_phrase_end=False,
+        is_original_word_start=True,
+        is_original_word_end=False,
+        line_id="0",
+    )
+
+    assert results[7] == AlignedMora(
+        parody_mora="セ",
+        original_mora="セ",
+        parody_vowel="e",
+        original_vowel="e",
+        parody_consonant="s",
+        original_consonant="s",
+        is_parody_word_start=False,
+        is_parody_word_end=True,
+        is_original_phrase_start=False,
+        is_original_phrase_end=False,
+        is_original_word_start=False,
+        is_original_word_end=False,
+        line_id="0",
+    )
+
+    assert results[8] == AlignedMora(
+        parody_mora="ク",
+        original_mora="ツ",
+        parody_vowel="u",
+        original_vowel="u",
+        parody_consonant="k",
+        original_consonant="ts",
+        is_parody_word_start=True,
+        is_parody_word_end=False,
+        is_original_phrase_start=False,
+        is_original_phrase_end=False,
+        is_original_word_start=False,
+        is_original_word_end=True,
+        line_id="0",
+    )
+
+    assert results[9] == AlignedMora(
+        parody_mora="ド",
+        original_mora="ノ",
+        parody_vowel="o",
+        original_vowel="o",
+        parody_consonant="d",
+        original_consonant="n",
+        is_parody_word_start=False,
+        is_parody_word_end=False,
+        is_original_phrase_start=False,
+        is_original_phrase_end=True,
+        is_original_word_start=True,
+        is_original_word_end=True,
+        line_id="0",
+    )
+
+    assert results[10] == AlignedMora(
+        parody_mora="ウ",
+        original_mora="",
+        parody_vowel="u",
+        original_vowel="",
+        parody_consonant="",
+        original_consonant="",
+        is_parody_word_start=False,
+        is_parody_word_end=True,
+        is_original_phrase_start=True,
+        is_original_phrase_end=True,
+        is_original_word_start=True,
+        is_original_word_end=True,
+        line_id="0",
+    )
+
+    assert results[11] == AlignedMora(
+        parody_mora="ナ",
+        original_mora="ナ",
+        parody_vowel="a",
+        original_vowel="a",
+        parody_consonant="n",
+        original_consonant="n",
+        is_parody_word_start=True,
+        is_parody_word_end=False,
+        is_original_phrase_start=True,
+        is_original_phrase_end=False,
+        is_original_word_start=True,
+        is_original_word_end=False,
+        line_id="0",
+    )
+
+    assert results[12] == AlignedMora(
+        parody_mora="カ",
+        original_mora="カ",
+        parody_vowel="a",
+        original_vowel="a",
+        parody_consonant="k",
+        original_consonant="k",
+        is_parody_word_start=False,
+        is_parody_word_end=False,
+        is_original_phrase_start=False,
+        is_original_phrase_end=False,
+        is_original_word_start=False,
+        is_original_word_end=True,
+        line_id="0",
+    )
+
+    assert results[13] == AlignedMora(
+        parody_mora="ノ",
+        original_mora="オ",
+        parody_vowel="o",
+        original_vowel="o",
+        parody_consonant="n",
+        original_consonant="",
+        is_parody_word_start=False,
+        is_parody_word_end=True,
+        is_original_phrase_start=False,
+        is_original_phrase_end=True,
+        is_original_word_start=True,
+        is_original_word_end=True,
+        line_id="0",
+    )
+
+    text = """
+    丼丼 藤
+    ドンドン ト
+    外 夜
+    ソト/p ヨ/p"""
     analyzed_lyrics = AnalyzedLyrics.from_text(text)
     results = align_analyzed_lyrics(analyzed_lyrics)
 
     idx = 0
-    assert results[idx].parody_mora == "ア"
-    assert results[idx].original_mora == "ア"
-    assert results[idx].parody_vowel == "a"
-    assert results[idx].original_vowel == "a"
-    assert results[idx].parody_consonant == ""
-    assert results[idx].original_consonant == ""
-    assert results[idx].is_parody_word_start == True
-    assert results[idx].is_parody_word_end == False
+    assert results[idx].parody_mora == "ド"
+    assert results[idx].original_mora == "ソ"
     assert results[idx].is_original_phrase_start == True
     assert results[idx].is_original_phrase_end == False
-    assert results[idx].line_id == "0"
+    assert results[idx].is_original_word_start == True
+    assert results[idx].is_original_word_end == False
 
-    idx += 1
-    assert results[idx].parody_mora == "ベ"
-    assert results[idx].original_mora == "レ"
-    assert results[idx].parody_vowel == "e"
-    assert results[idx].original_vowel == "e"
-    assert results[idx].parody_consonant == "b"
-    assert results[idx].original_consonant == "r"
-    assert results[idx].is_parody_word_start == False
-    assert results[idx].is_parody_word_end == True
-    assert results[idx].is_original_phrase_start == False
-    assert results[idx].is_original_phrase_end == True
-    assert results[idx].line_id == "0"
-
-    idx += 1
-    assert results[idx].parody_mora == "ク"
-    assert results[idx].original_mora == "ク"
-    assert results[idx].parody_vowel == "u"
-    assert results[idx].original_vowel == "u"
-    assert results[idx].parody_consonant == "k"
-    assert results[idx].original_consonant == "k"
-    assert results[idx].is_parody_word_start == True
-    assert results[idx].is_parody_word_end == False
-    assert results[idx].is_original_phrase_start == True
-    assert results[idx].is_original_phrase_end == False
-    assert results[idx].line_id == "0"
-
-    idx += 1
-    assert results[idx].parody_mora == "ル"
-    assert results[idx].original_mora == "ル"
-    assert results[idx].parody_vowel == "u"
-    assert results[idx].original_vowel == "u"
-    assert results[idx].parody_consonant == "r"
-    assert results[idx].original_consonant == "r"
-    assert results[idx].is_parody_word_start == False
-    assert results[idx].is_parody_word_end == False
-    assert results[idx].is_original_phrase_start == False
-    assert results[idx].is_original_phrase_end == False
-    assert results[idx].line_id == "0"
-
-    idx += 1
-    assert results[idx].parody_mora == "ー"
-    assert results[idx].original_mora == ""
-    assert results[idx].parody_vowel == ":"
-    assert results[idx].original_vowel == ""
-    assert results[idx].parody_consonant == ""
-    assert results[idx].original_consonant == ""
-    assert results[idx].is_parody_word_start == False
-    assert results[idx].is_parody_word_end == False
-    assert results[idx].is_original_phrase_start == False
-    assert results[idx].is_original_phrase_end == False
-    assert results[idx].line_id == "0"
-
-    idx += 1
+    idx = 1
     assert results[idx].parody_mora == "ン"
-    assert results[idx].original_mora == "ウ"
-    assert results[idx].parody_vowel == "N"
-    assert results[idx].original_vowel == "u"
-    assert results[idx].parody_consonant == ""
-    assert results[idx].original_consonant == ""
-    assert results[idx].is_parody_word_start == False
-    assert results[idx].is_parody_word_end == True
+    assert results[idx].original_mora == ""
+    assert results[idx].is_original_phrase_start == False
+    assert results[idx].is_original_phrase_end == False
+    assert results[idx].is_original_word_start == False
+    assert results[idx].is_original_word_end == False
+
+    idx = 2
+    assert results[idx].parody_mora == "ド"
+    assert results[idx].original_mora == "ト"
     assert results[idx].is_original_phrase_start == False
     assert results[idx].is_original_phrase_end == True
-    assert results[idx].line_id == "0"
+    assert results[idx].is_original_word_start == False
+    assert results[idx].is_original_word_end == True
 
-    idx += 1
-    assert results[idx].parody_mora == "イ"
-    assert results[idx].original_mora == "キ"
-    assert results[idx].parody_vowel == "i"
-    assert results[idx].original_vowel == "i"
-    assert results[idx].parody_consonant == ""
-    assert results[idx].original_consonant == "kj"
-    assert results[idx].is_parody_word_start == True
-    assert results[idx].is_parody_word_end == False
+    idx = 3
+    assert results[idx].parody_mora == "ン"
+    assert results[idx].original_mora == ""
     assert results[idx].is_original_phrase_start == True
-    assert results[idx].is_original_phrase_end == False
-    assert results[idx].line_id == "0"
+    assert results[idx].is_original_phrase_end == True
+    assert results[idx].is_original_word_start == True
+    assert results[idx].is_original_word_end == True
 
-    idx += 1
-    assert results[idx].parody_mora == "セ"
-    assert results[idx].original_mora == "セ"
-    assert results[idx].parody_vowel == "e"
-    assert results[idx].original_vowel == "e"
-    assert results[idx].parody_consonant == "s"
-    assert results[idx].original_consonant == "s"
-    assert results[idx].is_parody_word_start == False
-    assert results[idx].is_parody_word_end == True
-    assert results[idx].is_original_phrase_start == False
-    assert results[idx].is_original_phrase_end == False
-    assert results[idx].line_id == "0"
-
-    idx += 1
-    assert results[idx].parody_mora == "ク"
-    assert results[idx].original_mora == "ツ"
-    assert results[idx].parody_vowel == "u"
-    assert results[idx].original_vowel == "u"
-    assert results[idx].parody_consonant == "k"
-    assert results[idx].original_consonant == "ts"
-    assert results[idx].is_parody_word_start == True
-    assert results[idx].is_parody_word_end == False
-    assert results[idx].is_original_phrase_start == False
-    assert results[idx].is_original_phrase_end == False
-    assert results[idx].line_id == "0"
+    idx = 4
+    assert results[idx].parody_mora == "ト"
+    assert results[idx].original_mora == "ヨ"
+    assert results[idx].is_original_phrase_start == True
+    assert results[idx].is_original_phrase_end == True
+    assert results[idx].is_original_word_start == True
+    assert results[idx].is_original_word_end == True

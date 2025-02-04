@@ -48,11 +48,14 @@ def find_correspondance(
             return memo[memo_key]
 
         if reference_text and not input_segments:
-            return len(reference_text), []
+            dist = eval_func(reference_text, [])
+            memo[memo_key] = (dist, [])
+            return dist, []
         elif not reference_text and input_segments:
             flatten_input_segments = [x for row in input_segments for x in row]
+            dist = eval_func(reference_text, flatten_input_segments)
             result = (
-                len(flatten_input_segments),
+                dist,
                 [(0, 0) for _ in range(len(input_segments))],
             )
             memo[memo_key] = result
@@ -148,9 +151,13 @@ def align(
         if start == end:
             is_original_phrase_start = False
             is_original_phrase_end = False
+            is_original_word_start = False
+            is_original_word_end = False
         else:
             is_original_phrase_start = is_original_phrase_starts[start]
             is_original_phrase_end = is_original_phrase_ends[end - 1]
+            is_original_word_start = is_original_word_starts[start]
+            is_original_word_end = is_original_word_ends[end - 1]
 
         obj = AlignedMora(
             parody_mora=parody_mora,
@@ -159,8 +166,24 @@ def align(
             original_mora="".join(original_mora),
             is_original_phrase_start=is_original_phrase_start,
             is_original_phrase_end=is_original_phrase_end,
+            is_original_word_start=is_original_word_start,
+            is_original_word_end=is_original_word_end,
         )
         results.append(obj)
+
+    # 空文字の修正
+    # startは直後の情報と同じにする。
+    for i in range(len(results) - 2, -1, -1):
+        if results[i].original_mora == "":
+            results[i].is_original_phrase_start = results[
+                i + 1
+            ].is_original_phrase_start
+            results[i].is_original_word_start = results[i + 1].is_original_word_start
+    # endは直前の情報と同じにする
+    for i in range(1, len(results)):
+        if results[i].original_mora == "":
+            results[i].is_original_phrase_end = results[i - 1].is_original_phrase_end
+            results[i].is_original_word_end = results[i - 1].is_original_word_end
     return results
 
 
