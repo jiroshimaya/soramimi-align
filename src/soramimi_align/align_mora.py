@@ -20,7 +20,13 @@ def split_consonant_vowel(mora: str) -> Tuple[str, str]:
     return consonant, vowel
 
 
-def eval_vowel_consonant_distance(moras1: list[str], moras2: list[str]) -> int:
+def eval_vowel_consonant_distance(moras1: list[str], moras2: list[str]) -> float:
+    # 本当は特殊モウラの削除コストを低くしたいが、うまくいっていない
+    # if moras1 == [] and len(moras2) == 1 and moras2[0] in "ンーッ":
+    #    return 0.5
+    # elif moras2 == [] and len(moras1) == 1 and moras1[0] in "ンーッ":
+    #    return 0.5
+
     vowels_consonants1 = [split_consonant_vowel(mora) for mora in moras1]
     vowels_consonants2 = [split_consonant_vowel(mora) for mora in moras2]
     vowels1 = [vowel for consonant, vowel in vowels_consonants1]

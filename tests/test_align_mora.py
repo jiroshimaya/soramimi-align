@@ -296,7 +296,7 @@ def test_align_analyzed_lyrics():
     ソト/p ヨ/p"""
     analyzed_lyrics = AnalyzedLyrics.from_text(text)
     results = align_analyzed_lyrics(analyzed_lyrics)
-
+    print(results)
     idx = 0
     assert results[idx].parody_mora == "ド"
     assert results[idx].original_mora == "ソ"
