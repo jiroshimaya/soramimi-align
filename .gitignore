@@ -1,4 +1,11 @@
-/data/
+/data/*
+!/data/input
+/data/input/*
+!/data/input/sample_lyric.txt
+!/data/input/sample_post_errata.json
+!/data/input/sample_pre_errata.json
+!/data/input/sample_worddict.csv
+
 /output/
 
 # Byte-compiled / optimized / DLL files

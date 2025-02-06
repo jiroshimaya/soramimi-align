@@ -33,4 +33,24 @@ dev = [
     "neologdn>=0.5.3",
     "pyperclip>=1.9.0",
     "pytest>=8.3.4",
+    "taskipy>=1.14.1",
 ]
+
+[tool.taskipy.tasks]
+fmt = "task ruff_format && task ruff_fix"
+ruff_format = "uvx ruff format"
+ruff_fix = "uvx ruff check --fix --extend-select I"
+test = "pytest -v"
+make_draft_sample = """
+    python src/soramimi_align/make_draft.py \
+    -i data/input/sample_lyric.txt \
+    -o data/output/sample_draft.txt \
+    -w data/input/sample_worddict.csv \
+    -pree data/input/sample_pre_errata.json \
+    -poste data/input/sample_post_errata.json
+    """
+align_mora_sample = """
+    python src/soramimi_align/align_mora.py \
+    -i data/output/sample_draft.txt \
+    -o data/output/sample_mora.csv
+    """

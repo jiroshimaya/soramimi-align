@@ -463,6 +463,7 @@ def main():
         if post_errata_dict:
             for k, v in post_errata_dict.items():
                 summary = summary.replace(k, v)
+        os.makedirs(os.path.dirname(args.output_file), exist_ok=True)
         with open(args.output_file, "w") as f:
             f.write(summary)
     elif os.path.isdir(args.input_file):
