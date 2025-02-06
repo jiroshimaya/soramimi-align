@@ -6,7 +6,6 @@ from typing import Callable, Tuple
 import editdistance as ed
 import jamorasep
 import pandas as pd
-import tqdm
 
 from soramimi_align.schemas import AlignedMora, AnalyzedLyrics, AnalyzedWordItem
 
@@ -42,7 +41,7 @@ def eval_vowel_consonant_distance(moras1: list[str], moras2: list[str]) -> float
 def find_correspondance(
     reference_text,
     input_segments,
-    eval_func: Callable[[list[str], list[str]], int],
+    eval_func: Callable[[list[str], list[str]], float],
 ):
     memo = {}
 
@@ -120,19 +119,23 @@ def align(
     input_moras = []
     is_parody_word_starts = []
     is_parody_word_ends = []
+    parody_word_surfaces = []
     for word in parody_line:
         moras = jamorasep.parse(word.pronunciation)
         input_moras += moras
         is_parody_word_starts += [True] + [False] * (len(moras) - 1)
         is_parody_word_ends += [False] * (len(moras) - 1) + [True]
+        parody_word_surfaces += [word.surface] * len(moras)
     reference_moras = []
     is_original_phrase_starts = []
     is_original_phrase_ends = []
     is_original_word_starts = []
     is_original_word_ends = []
+    original_word_surfaces = []
     for word in original_line:
         moras = jamorasep.parse(word.pronunciation)
         reference_moras += moras
+        original_word_surfaces += [word.surface] * len(moras)
         if word.is_phrase_start:
             is_original_phrase_starts += [True] + [False] * (len(moras) - 1)
         else:
@@ -153,6 +156,9 @@ def align(
         parody_mora = input_moras[i]
         is_parody_word_start = is_parody_word_starts[i]
         is_parody_word_end = is_parody_word_ends[i]
+        parody_word_surface = ""
+        if is_parody_word_start and parody_mora:
+            parody_word_surface = parody_word_surfaces[i]
         original_mora = reference_moras[start:end]
         if start == end:
             is_original_phrase_start = False
@@ -165,6 +171,10 @@ def align(
             is_original_word_start = is_original_word_starts[start]
             is_original_word_end = is_original_word_ends[end - 1]
 
+        original_word_surface = ""
+        if is_original_word_start and original_mora:
+            original_word_surface = original_word_surfaces[start]
+
         obj = AlignedMora(
             parody_mora=parody_mora,
             is_parody_word_start=is_parody_word_start,
@@ -174,6 +184,8 @@ def align(
             is_original_phrase_end=is_original_phrase_end,
             is_original_word_start=is_original_word_start,
             is_original_word_end=is_original_word_end,
+            original_word_surface=original_word_surface,
+            parody_word_surface=parody_word_surface,
         )
         results.append(obj)
 
@@ -202,11 +214,9 @@ def align_analyzed_lyrics(analyzed_lyrics: AnalyzedLyrics) -> list[AlignedMora]:
         for result in results:
             result.line_id = str(line_id)
 
-            parody_consonant, parody_vowel = split_consonant_vowel(
-                result.parody_mora[:1]
-            )
+            parody_consonant, parody_vowel = split_consonant_vowel(result.parody_mora)
             original_consonant, original_vowel = split_consonant_vowel(
-                result.original_mora[:1]
+                result.original_mora
             )
             result.parody_vowel = parody_vowel
             result.parody_consonant = parody_consonant
@@ -218,7 +228,12 @@ def align_analyzed_lyrics(analyzed_lyrics: AnalyzedLyrics) -> list[AlignedMora]:
 
 def align_files(input_dir: str):
     all_results = []
-    for input_file_path in tqdm.tqdm(glob.glob(os.path.join(input_dir, "*.txt"))):
+    if os.path.isdir(input_dir):
+        files = sorted(glob.glob(os.path.join(input_dir, "*.txt")))
+    else:
+        files = [input_dir]
+    for input_file_path in files:
+        print(input_file_path)
         with open(input_file_path, "r") as f:
             input_text = f.read()
         analyzed_lyrics = AnalyzedLyrics.from_text(input_text)

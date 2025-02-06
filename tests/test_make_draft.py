@@ -92,6 +92,8 @@ def test_parse_lyrics(athlete_name_detector, tokenizer):
     イチロー 大谷 （ダルビッシュ）有
     風の中のすばる
     
+    # コメントアウト
+    
     選手一覧
     イチロー
     大谷有
@@ -113,4 +115,16 @@ def test_parse_lyrics(athlete_name_detector, tokenizer):
 
 def test_tokenizer_format_text(tokenizer):
     text = "イチロー) 大谷 ダルビッシュ"
-    assert tokenizer.format_text(text) == "イチロー大谷ダルビッシュ"
+    assert tokenizer.format_text(text) == "イチロー 大谷 ダルビッシュ"
+
+
+def test_tokenizer_is_phrase_start(tokenizer):
+    text = "お先に失礼します"
+    tokens = tokenizer.tokenize(text)
+
+    assert tokenizer.is_phrase_start(tokens[0]) is True  # お
+    assert tokenizer.is_phrase_start(tokens[1], tokens[0]) is False  # 先
+    assert tokenizer.is_phrase_start(tokens[2], tokens[1]) is False  # に
+    assert tokenizer.is_phrase_start(tokens[3], tokens[2]) is True  # 失礼
+    assert tokenizer.is_phrase_start(tokens[4], tokens[3]) is True  # し
+    assert tokenizer.is_phrase_start(tokens[5], tokens[4]) is False  # ます

@@ -79,6 +79,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=True,
         is_original_word_end=False,
         line_id="0",
+        parody_word_surface="阿部",
+        original_word_surface="荒れ",
     )
 
     assert results[1] == AlignedMora(
@@ -95,6 +97,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=False,
         is_original_word_end=True,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="",
     )
 
     assert results[2] == AlignedMora(
@@ -111,6 +115,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=True,
         is_original_word_end=False,
         line_id="0",
+        parody_word_surface="クルーン",
+        original_word_surface="狂う",
     )
 
     assert results[3] == AlignedMora(
@@ -127,6 +133,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=False,
         is_original_word_end=False,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="",
     )
 
     assert results[4] == AlignedMora(
@@ -143,6 +151,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=False,
         is_original_word_end=False,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="",
     )
 
     assert results[5] == AlignedMora(
@@ -159,6 +169,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=False,
         is_original_word_end=True,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="",
     )
 
     assert results[6] == AlignedMora(
@@ -175,6 +187,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=True,
         is_original_word_end=False,
         line_id="0",
+        parody_word_surface="伊勢",
+        original_word_surface="季節",
     )
 
     assert results[7] == AlignedMora(
@@ -191,6 +205,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=False,
         is_original_word_end=False,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="",
     )
 
     assert results[8] == AlignedMora(
@@ -207,6 +223,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=False,
         is_original_word_end=True,
         line_id="0",
+        parody_word_surface="工藤",
+        original_word_surface="",
     )
 
     assert results[9] == AlignedMora(
@@ -223,6 +241,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=True,
         is_original_word_end=True,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="の",
     )
 
     assert results[10] == AlignedMora(
@@ -239,6 +259,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=True,
         is_original_word_end=True,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="",
     )
 
     assert results[11] == AlignedMora(
@@ -255,6 +277,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=True,
         is_original_word_end=False,
         line_id="0",
+        parody_word_surface="中野",
+        original_word_surface="中",
     )
 
     assert results[12] == AlignedMora(
@@ -271,6 +295,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=False,
         is_original_word_end=True,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="",
     )
 
     assert results[13] == AlignedMora(
@@ -287,6 +313,8 @@ def test_align_analyzed_lyrics():
         is_original_word_start=True,
         is_original_word_end=True,
         line_id="0",
+        parody_word_surface="",
+        original_word_surface="を",
     )
 
     text = """

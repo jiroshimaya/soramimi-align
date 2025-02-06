@@ -246,6 +246,15 @@ wheels = [
 ]
 
 [[package]]
+name = "jasyllablesep"
+version = "0.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ed/12/d17f2f8418cf50df06cdfb35bc5991e9a817efe479e5df76d5b2c76127b9/jasyllablesep-0.0.0.tar.gz", hash = "sha256:cd9b02641cb70852b9ee67148821134a61142c73f477ad83e4c43b8875b0a3ab", size = 3114 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e9/4a/43ec36752083b03929ee277afd6d15aa9c710438b72991f23bfa7214e7cc/jasyllablesep-0.0.0-py3-none-any.whl", hash = "sha256:d2ed34f87b0c0047e344bd1772c3da447b23df6afa6cd5b16ad491cf4f8ef558", size = 3269 },
+]
+
+[[package]]
 name = "jedi"
 version = "0.19.2"
 source = { registry = "https://pypi.org/simple" }
@@ -255,6 +264,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/72/3a/79a912fbd4d8dd6fbb02bf69afd3bb72cf0c729bb3063c6f4498603db17a/jedi-0.19.2.tar.gz", hash = "sha256:4770dc3de41bde3966b02eb84fbcf557fb33cce26ad23da12c742fb50ecb11f0", size = 1231287 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c0/5a/9cac0c82afec3d09ccd97c8b6502d48f165f9124db81b4bcb90b4af974ee/jedi-0.19.2-py2.py3-none-any.whl", hash = "sha256:a8ef22bde8490f57fe5c7681a3c83cb58874daf72b4784de3cce5b6ef6edb5b9", size = 1572278 },
+]
+
+[[package]]
+name = "jphrase"
+version = "0.0.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f1/14/9cc8511481f6e68a63f6cf7dd8027638833888e3274625112630cd04418b/jphrase-0.0.3.tar.gz", hash = "sha256:62ec5ccb8955edcae3ad7a6554597a235d67115f3f6f6cd14daee0eaf8e86661", size = 6562 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/11/bf/5564fc64d17894810ce70a0727111caa5d46b32013908916d0a359f32482/jphrase-0.0.3-py3-none-any.whl", hash = "sha256:bd8721a6fad00da7dc771b8fbfdac7fa6931477b344ccf24806902b27a034db5", size = 6651 },
 ]
 
 [[package]]
@@ -673,6 +691,7 @@ dependencies = [
     { name = "ipadic" },
     { name = "jaconv" },
     { name = "jamorasep" },
+    { name = "jasyllablesep" },
     { name = "mecab-python3" },
     { name = "pandas" },
     { name = "sudachidict-full" },
@@ -684,6 +703,7 @@ dependencies = [
 dev = [
     { name = "ipykernel" },
     { name = "ipython" },
+    { name = "jphrase" },
     { name = "neologdn" },
     { name = "pyperclip" },
     { name = "pytest" },
@@ -696,6 +716,7 @@ requires-dist = [
     { name = "ipadic", specifier = ">=1.0.0" },
     { name = "jaconv", specifier = ">=0.4.0" },
     { name = "jamorasep", specifier = ">=0.0.1" },
+    { name = "jasyllablesep", specifier = ">=0.0.0" },
     { name = "mecab-python3", specifier = ">=1.0.10" },
     { name = "pandas", specifier = ">=2.2.3" },
     { name = "sudachidict-full", specifier = ">=20241021" },
@@ -707,6 +728,7 @@ requires-dist = [
 dev = [
     { name = "ipykernel", specifier = ">=6.29.5" },
     { name = "ipython", specifier = ">=8.30.0" },
+    { name = "jphrase", specifier = ">=0.0.3" },
     { name = "neologdn", specifier = ">=0.5.3" },
     { name = "pyperclip", specifier = ">=1.9.0" },
     { name = "pytest", specifier = ">=8.3.4" },

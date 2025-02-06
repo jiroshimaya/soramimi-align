@@ -29,6 +29,8 @@ class AthleteParodyLyrics:
     def from_text(cls, text: str) -> "AthleteParodyLyrics":
         # テキストを行ごとに分割
         lines = text.splitlines()
+        # コメントアウトを削除
+        lines = [line.split("#")[0] for line in lines]
         # 空行を削除
         lines = [line.strip() for line in lines if line.strip()]
         # 記号だけの行を削除
@@ -195,6 +197,20 @@ class AnalyzedWordItem:
     is_phrase_start: bool = False
     memo: dict[str, Any] = field(default_factory=dict)
 
+    def __post_init__(self):
+        if self.pronunciation.count("/") > 1:
+            self.pronunciation = self.pronunciation.split("/")[0]
+
+        if not re.fullmatch(r"[ァ-ヶー]+", self.pronunciation):
+            print(
+                f"警告 in AnalyzedWordItem: 発音にカタカナ以外の文字が含まれています: {self.surface} {self.pronunciation}"
+            )
+
+        if len(self.surface) != len("".join(self.surface.split())):
+            print(
+                f"警告: surfaceにスペースが含まれています: {self.surface} {self.pronunciation}"
+            )
+
 
 @dataclass
 class AnalyzedLyrics:
@@ -239,7 +255,10 @@ class AnalyzedLyrics:
         surfaces = surface_line.split()
         pronunciations = pronunciation_line.split()
 
-        assert len(surfaces) == len(pronunciations)
+        if len(surfaces) != len(pronunciations):
+            print("surfaces", surfaces)
+            print("pronunciations", pronunciations)
+            raise ValueError("surfacesとpronunciationsの長さが一致しません")
 
         analyzed_words = []
         for surface, pronunciation in zip(surfaces, pronunciations):
@@ -257,7 +276,10 @@ class AnalyzedLyrics:
         surfaces = surface_line.split()
         pronunciations = pronunciation_line.split()
 
-        assert len(surfaces) == len(pronunciations)
+        if len(surfaces) != len(pronunciations):
+            print("surfaces", surfaces)
+            print("pronunciations", pronunciations)
+            raise ValueError("surfacesとpronunciationsの長さが一致しません")
 
         analyzed_words = []
         for surface, pronunciation in zip(surfaces, pronunciations):
@@ -292,3 +314,5 @@ class AlignedMora:
     original_vowel: str = ""
     parody_consonant: str = ""
     original_consonant: str = ""
+    parody_word_surface: str = ""
+    original_word_surface: str = ""

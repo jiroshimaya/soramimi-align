@@ -13,7 +13,7 @@ import sudachipy
 from sudachipy import dictionary as sudachi_dictionary
 from sudachipy import tokenizer as sudachi_tokenizer
 
-from .schemas import (
+from soramimi_align.schemas import (
     AnalyzedLyrics,
     AnalyzedWordItem,
     AthleteName,
@@ -33,8 +33,11 @@ class Tokenizer:
         self.user_dict = self.format_dict(user_dict or {})
 
     def format_text(self, text: str) -> str:
-        text = " ".join(text.split())
+        # 単語のスペースを一時的に別の文字に変換。neologdnがスペースを削除するため
+        tmp_space = "<sssssssss>"
+        text = tmp_space.join(text.split())
         text = neologdn.normalize(text)
+        text = text.replace(tmp_space, " ")
         text = self.code_regex.sub("", text)
         return text
 
@@ -81,8 +84,10 @@ class Tokenizer:
             if i == 0:
                 is_phrase_start = True
             else:
-                is_phrase_start = self.is_phrase_start(token)
+                is_phrase_start = self.is_phrase_start(token, tokens[i - 1])
 
+            # surfaceからスペースを無くす
+            surface = "_".join(surface.split())
             word_token = AnalyzedWordItem(
                 surface=surface,
                 pronunciation=pronunciation,
@@ -91,8 +96,12 @@ class Tokenizer:
             results.append(word_token)
         return results
 
-    def is_phrase_start(self, token: sudachipy.Morpheme) -> bool:
-        if token.part_of_speech()[0] in [
+    def is_phrase_start(
+        self, token: sudachipy.Morpheme, prev_token: sudachipy.Morpheme | None = None
+    ) -> bool:
+        phrase_start = False
+        token_pos = token.part_of_speech()[0]
+        if token_pos in [
             "名詞",
             "動詞",
             "形容詞",
@@ -102,9 +111,15 @@ class Tokenizer:
             "形状詞",
             "連体詞",
             "代名詞",
+            "接頭辞",
         ]:
-            return True
-        return False
+            phrase_start = True
+        if prev_token:
+            prev_token_pos = prev_token.part_of_speech()[0]
+            if prev_token_pos == "接頭辞" and token_pos == "名詞":
+                phrase_start = False
+
+        return phrase_start
 
 
 class AthleteNameDetector:
@@ -123,12 +138,14 @@ class AthleteNameDetector:
         athlete_table_df = pd.read_csv(athlete_table_path)
         athlete_table_items = []
         for index, row in athlete_table_df.iterrows():
+            # pronunciationはカタカナのみにする
+            pronunciation = "".join(row["pronunciation"].split()).replace("・", "")
             athlete_table_items.append(
                 AthleteTableItem(
                     id=row["id"],
                     original=row["original"],
                     surface=row["surface"],
-                    pronunciation=row["pronunciation"],
+                    pronunciation=pronunciation,
                 )
             )
         return athlete_table_items
@@ -320,6 +337,9 @@ def parse_lyrics(
                 "pronunciation_candidate_num": len(pronunciation_candidates),
                 "pronunciation_candidates": list(pronunciation_candidates),
             }
+            # pronunciationはカタカナのみにする
+            # pronunciation = "".join(pronunciation.split()).replace("・", "")
+
             analyzed_parody_line.append(
                 AnalyzedWordItem(
                     surface=name.pronounced_surface,
@@ -364,6 +384,10 @@ def summarize_parsed_lyrics(parsed_lyrics: AnalyzedLyrics) -> str:
                 )
             parody_word_pronunciations.append(pronunciation)
         original_word_surfaces = [word.surface for word in analyzed_original_line]
+        # 空白を含んだ表層があるとpronunciationと要素数が合わなくなるので、表層の空白をハイフンに変換
+        original_word_surfaces = [
+            word.replace(" ", "_") for word in original_word_surfaces
+        ]
         original_word_pronunciations = []
         for word in analyzed_original_line:
             pronunciation = word.pronunciation
@@ -376,7 +400,10 @@ def summarize_parsed_lyrics(parsed_lyrics: AnalyzedLyrics) -> str:
         summary_lines.append(" ".join(original_word_surfaces))
         summary_lines.append(" ".join(original_word_pronunciations))
         summary_lines.append("")
-    return "\n".join(summary_lines)
+
+    full_text = "\n".join(summary_lines)
+
+    return full_text
 
 
 def main():
@@ -393,6 +420,26 @@ def main():
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="tracebackを出力するかのフラグ"
     )
+    parser.add_argument(
+        "-pree",
+        "--pre_errata_dict_path",
+        type=str,
+        default=None,
+        help="入力replaceで修正するための辞書",
+    )
+    parser.add_argument(
+        "-poste",
+        "--post_errata_dict_path",
+        type=str,
+        default=None,
+        help="出力をreplaceで修正するための辞書",
+    )
+    parser.add_argument(
+        "-f",
+        "--force",
+        action="store_true",
+        help="出力ファイルが既に存在しても上書きするフラグ",
+    )
     args = parser.parse_args()
 
     if not args.output_file:
@@ -407,13 +454,33 @@ def main():
         with open(args.user_dict_path, "r") as f:
             user_dict = json.load(f)
     tokenizer = Tokenizer(user_dict=user_dict)
+
+    if args.pre_errata_dict_path:
+        with open(args.pre_errata_dict_path, "r") as f:
+            pre_errata_dict = json.load(f)
+    else:
+        pre_errata_dict = None
+
+    if args.post_errata_dict_path:
+        with open(args.post_errata_dict_path, "r") as f:
+            post_errata_dict = json.load(f)
+    else:
+        post_errata_dict = None
+
     if os.path.isfile(args.input_file):
         with open(args.input_file, "r") as f:
             text = f.read()
+
+        if pre_errata_dict:
+            for k, v in pre_errata_dict.items():
+                text = text.replace(k, v)
         # print(text)
         lyrics = AthleteParodyLyrics.from_text(text)
         parsed_lyrics = parse_lyrics(lyrics, athlete_name_detector, tokenizer)
         summary = summarize_parsed_lyrics(parsed_lyrics)
+        if post_errata_dict:
+            for k, v in post_errata_dict.items():
+                summary = summary.replace(k, v)
         with open(args.output_file, "w") as f:
             f.write(summary)
     elif os.path.isdir(args.input_file):
@@ -424,19 +491,29 @@ def main():
         txt_files.sort()
         # for file_path in tqdm.tqdm(txt_files):
         for file_path in txt_files:
-            print(file_path)
+            output_file_path = os.path.join(
+                args.output_file, os.path.basename(file_path)
+            )
+            print(file_path, end="")
             try:
                 with open(file_path, "r") as f:
                     text = f.read()
+                if pre_errata_dict:
+                    for k, v in pre_errata_dict.items():
+                        text = text.replace(k, v)
                 lyrics = AthleteParodyLyrics.from_text(text)
                 parsed_lyrics = parse_lyrics(lyrics, athlete_name_detector, tokenizer)
                 summary = summarize_parsed_lyrics(parsed_lyrics)
-                output_file_path = os.path.join(
-                    args.output_file, os.path.basename(file_path)
-                )
+                if post_errata_dict:
+                    for k, v in post_errata_dict.items():
+                        summary = summary.replace(k, v)
                 if not args.check_only:
-                    with open(output_file_path, "w") as f:
-                        f.write(summary)
+                    if os.path.exists(output_file_path) and not args.force:
+                        print(" skip")
+                    else:
+                        print(" write")
+                        with open(output_file_path, "w") as f:
+                            f.write(summary)
             except Exception as e:
                 print(f"Error:{e}")
                 if args.verbose:
