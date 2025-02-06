@@ -23,14 +23,13 @@ from soramimi_align.schemas import (
 
 
 class Tokenizer:
-    def __init__(self, *, user_dict: dict[str, str] | None = None):
+    def __init__(self):
         self.tokenizer_obj = sudachi_dictionary.Dictionary(dict="full").create()
         self.mode = sudachi_tokenizer.Tokenizer.SplitMode.A
         self.code_regex = re.compile(
             "[!\"#$%&'\\\\()*+,-./:;<=>?@[\\]^_`{|}~「」〔〕"
             "＆＊・（）＄＃＠。、？！｀＋￥％]"
         )
-        self.user_dict = self.format_dict(user_dict or {})
 
     def format_text(self, text: str) -> str:
         # 単語のスペースを一時的に別の文字に変換。neologdnがスペースを削除するため
@@ -48,22 +47,10 @@ class Tokenizer:
             token
             for token in tokens
             if token.part_of_speech()[0] not in ["補助記号", "記号", "空白"]
-            or token.surface() in self.user_dict
         ]
         return tokens
 
-    def format_dict(self, _dict: dict[str, str]) -> dict[str, str]:
-        formatted_dict = {}
-        for k, v in _dict.items():
-            formatted_v = self.format_text(v)
-            formatted_v = jaconv.hira2kata(formatted_v)
-            formatted_dict[k] = formatted_v
-        return formatted_dict
-
     def get_pronuncation_from_token(self, token: sudachipy.Morpheme) -> str:
-        if token.surface() in self.user_dict:
-            return self.user_dict[token.surface()]
-
         reading_form = alkana.get_kana(token.surface())
         if not reading_form:
             if token.part_of_speech()[0] == "助詞" and token.surface() == "は":
@@ -415,7 +402,6 @@ def main():
     parser.add_argument(
         "-w", "--word_dict_path", type=str, default="data/worddict/baseball.csv"
     )
-    parser.add_argument("-u", "--user_dict_path", type=str, default=None)
     parser.add_argument("-c", "--check_only", action="store_true")
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="tracebackを出力するかのフラグ"
@@ -449,11 +435,7 @@ def main():
             args.output_file = "output"
 
     athlete_name_detector = AthleteNameDetector(args.word_dict_path)
-    user_dict = None
-    if args.user_dict_path:
-        with open(args.user_dict_path, "r") as f:
-            user_dict = json.load(f)
-    tokenizer = Tokenizer(user_dict=user_dict)
+    tokenizer = Tokenizer()
 
     if args.pre_errata_dict_path:
         with open(args.pre_errata_dict_path, "r") as f:

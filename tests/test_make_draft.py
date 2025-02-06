@@ -81,10 +81,7 @@ def athlete_name_detector():
 
 @pytest.fixture
 def tokenizer():
-    user_dict = {
-        "○": "マル",
-    }
-    return Tokenizer(user_dict=user_dict)
+    return Tokenizer()
 
 
 def test_parse_lyrics(athlete_name_detector, tokenizer):
