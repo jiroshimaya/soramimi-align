@@ -47,7 +47,7 @@ def test_find_correspondance():
     assert wrapper("アア", "アア") == [("ア", "ア"), ("ア", "ア")]
     assert wrapper("クドウ", "カト") == [("ク", "カ"), ("ドウ", "ト")]
     assert wrapper("ドウ", "トン") == [("ド", "ト"), ("ウ", "ン")]
-    assert wrapper("トントン", "ソコ") == [("ト", "ソ"), ("ントン", "コ")]
+    assert wrapper("トントン", "ソコ") == [("トン", "ソ"), ("トン", "コ")]
     assert wrapper("ソコ", "トントン") == [
         ("ソ", "ト"),
         ("", "ン"),
@@ -63,7 +63,7 @@ def test_align_analyzed_lyrics():
     荒れ 狂う 季節 の 中 を
     アレ/p クルウ/p キセツ/p ノ ナカ/p オ"""
     analyzed_lyrics = AnalyzedLyrics.from_text(text)
-    results = align_analyzed_lyrics(analyzed_lyrics)
+    results = align_analyzed_lyrics(analyzed_lyrics, parody_as_referrence=False)
 
     assert results[0] == AlignedMora(
         parody_mora="ア",
@@ -323,8 +323,7 @@ def test_align_analyzed_lyrics():
     外 夜
     ソト/p ヨ/p"""
     analyzed_lyrics = AnalyzedLyrics.from_text(text)
-    results = align_analyzed_lyrics(analyzed_lyrics)
-    print(results)
+    results = align_analyzed_lyrics(analyzed_lyrics, parody_as_referrence=False)
     idx = 0
     assert results[idx].parody_mora == "ド"
     assert results[idx].original_mora == "ソ"
@@ -364,3 +363,24 @@ def test_align_analyzed_lyrics():
     assert results[idx].is_original_phrase_end
     assert results[idx].is_original_word_start
     assert results[idx].is_original_word_end
+
+    text = """
+    丼丼 藤
+    ドンドン ト
+    外 夜
+    ソト/p ヨ/p"""
+    analyzed_lyrics = AnalyzedLyrics.from_text(text)
+    results = align_analyzed_lyrics(analyzed_lyrics)
+
+    print(results)
+    idx = 0
+    assert results[idx].parody_mora == "ドン"
+    assert results[idx].original_mora == "ソ"
+
+    idx = 1
+    assert results[idx].parody_mora == "ドン"
+    assert results[idx].original_mora == "ト"
+
+    idx = 2
+    assert results[idx].parody_mora == "ト"
+    assert results[idx].original_mora == "ヨ"
