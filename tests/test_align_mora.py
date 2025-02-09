@@ -14,38 +14,46 @@ from soramimi_align.schemas import AlignedMora, AnalyzedLyrics
 
 def test_split_consonant_vowel():
     assert split_consonant_vowel("") == ("", "")
-    assert split_consonant_vowel("あ") == ("", "a")
-    assert split_consonant_vowel("ア") == ("", "a")
-    assert split_consonant_vowel("ー") == ("", ":")
-    assert split_consonant_vowel("あー") == ("", "a")
-    assert split_consonant_vowel("ッ") == ("", "Q")
+    assert split_consonant_vowel("ア") == ("sp", "a")
+    assert split_consonant_vowel("ー") == ("sp", ":")
+    assert split_consonant_vowel("アー") == ("sp", "a")
+    assert split_consonant_vowel("ッ") == ("sp", "Q")
+    assert split_consonant_vowel("リョ") == ("rj", "o")
 
 
 def test_eval_vowel_consonant_distance():
-    assert eval_vowel_consonant_distance(["あ"], ["あ"]) == 0
-    assert eval_vowel_consonant_distance(["あ"], ["い"]) == 1
-    assert eval_vowel_consonant_distance(["あ"], ["か"]) == 1
-    assert eval_vowel_consonant_distance(["あ"], [""]) == 1
-    assert eval_vowel_consonant_distance(["か"], [""]) == 2
-    assert eval_vowel_consonant_distance(["あ"], ["き"]) == 2
+    assert eval_vowel_consonant_distance(["ア"], ["ア"]) == -0.01
+    assert eval_vowel_consonant_distance(["ア"], ["イ"]) == 2.00
+    assert eval_vowel_consonant_distance(["ア"], ["カ"]) == 0.99
+    assert eval_vowel_consonant_distance(["ア"], [""]) == 3.0
+    assert eval_vowel_consonant_distance(["カ"], [""]) == 3.0
+    assert eval_vowel_consonant_distance(["ア"], ["カ"]) == 0.99
+    assert eval_vowel_consonant_distance(["イ"], ["ミ"]) == 0.99
+    assert eval_vowel_consonant_distance([""], ["ミ"]) == 3.00
+    assert eval_vowel_consonant_distance(["イ", "ノ"], ["ミ", "リョ"]) == 1.99
 
 
 def test_find_correspondance():
-    def wrapper(
-        reference_moras: str | list[str], input_moras: str | list[str]
-    ) -> list[tuple[str, str]]:
+    def wrapper(reference_text: str, input_text: str) -> list[tuple[str, str]]:
+        import jamorasep
+
+        reference_moras = jamorasep.parse(reference_text)
+        input_moras = jamorasep.parse(input_text)
+        input_segments = [[mora] for mora in input_moras]
+
         """テストケースを作りやすいように、出力をテキストのペアにする"""
         dist, correspondance = find_correspondance(
-            reference_moras, input_moras, eval_vowel_consonant_distance
+            reference_moras, input_segments, eval_vowel_consonant_distance
         )
 
         result = []
         for input_mora, (start, end) in zip(input_moras, correspondance):
-            result.append((reference_moras[start:end], input_mora))
+            result.append(("".join(reference_moras[start:end]), "".join(input_mora)))
         return result
 
     assert wrapper("アア", "アア") == [("ア", "ア"), ("ア", "ア")]
     assert wrapper("クドウ", "カト") == [("ク", "カ"), ("ドウ", "ト")]
+    assert wrapper("カト", "クドウ") == [("カ", "ク"), ("ト", "ド"), ("", "ウ")]
     assert wrapper("ドウ", "トン") == [("ド", "ト"), ("ウ", "ン")]
     assert wrapper("トントン", "ソコ") == [("トン", "ソ"), ("トン", "コ")]
     assert wrapper("ソコ", "トントン") == [
@@ -53,6 +61,12 @@ def test_find_correspondance():
         ("", "ン"),
         ("コ", "ト"),
         ("", "ン"),
+    ]
+    assert wrapper("イノ", "ミリョ") == [("イ", "ミ"), ("ノ", "リョ")]
+    assert wrapper("ケイサンキイ", "ヘマチ") == [
+        ("ケイ", "ヘ"),
+        ("サン", "マ"),
+        ("キイ", "チ"),
     ]
 
 

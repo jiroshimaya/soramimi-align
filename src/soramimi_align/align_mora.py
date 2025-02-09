@@ -1,13 +1,15 @@
 # %%
 import glob
 import os
-from typing import Callable, Tuple
+from typing import Callable, Tuple, TypeVar
 
 import editdistance as ed
 import jamorasep
 import pandas as pd
 
 from soramimi_align.schemas import AlignedMora, AnalyzedLyrics, AnalyzedWordItem
+
+T = TypeVar("T")
 
 
 def split_consonant_vowel(mora: str) -> Tuple[str, str]:
@@ -16,7 +18,10 @@ def split_consonant_vowel(mora: str) -> Tuple[str, str]:
 
     simpleipa = jamorasep.parse(mora, output_format="simple-ipa")[0]
     consonant, vowel = "".join(simpleipa[:-1]), simpleipa[-1]
-    return consonant, vowel
+    if consonant == "":
+        return "sp", vowel
+    else:
+        return consonant, vowel
 
 
 def eval_vowel_consonant_distance(moras1: list[str], moras2: list[str]) -> float:
@@ -36,27 +41,32 @@ def eval_vowel_consonant_distance(moras1: list[str], moras2: list[str]) -> float
     vowel_dist = ed.eval(vowels1, vowels2)
     consonant_dist = ed.eval(consonants1, consonants2)
 
+    dist = vowel_dist * 2 + consonant_dist
+
     # 特殊モウラからの開始に対するペナルティ。「あーあ」と「あ」のような場合に、「あー」を「あ」に合わせるようにする。
     if moras1 and moras2:
         if moras1[0] not in "ンーッ" and moras2[0] and moras2[0] in "ンーッ":
-            vowel_dist += 0.01
+            dist += 0.01
         elif moras1[0] and moras1[0] in "ンーッ" and moras2[0] not in "ンーッ":
-            vowel_dist += 0.01
-
-    return vowel_dist + consonant_dist
+            dist += 0.01
+    # 先頭の母音の一致を重視
+    if len(vowels1) > 0 and len(vowels2) > 0:
+        if vowels1[0] == vowels2[0]:
+            dist -= 0.01
+    return dist
 
 
 def find_correspondance(
-    reference_text,
-    input_segments,
-    eval_func: Callable[[list[str], list[str]], float],
+    reference_text: list[T],
+    input_segments: list[list[T]],
+    eval_func: Callable[[list[T], list[T]], float],
 ):
     memo = {}
 
     def inner_func(reference_text, input_segments):
         nonlocal memo
 
-        memo_key = (tuple(reference_text), tuple(input_segments))
+        memo_key = (str(reference_text), str(input_segments))
         if memo_key in memo:
             return memo[memo_key]
 
@@ -116,25 +126,25 @@ def find_correspondance(
         memo[memo_key] = min_result
         return min_result
 
-    if isinstance(reference_text, str):
-        reference_text = tuple(reference_text)
+    # if isinstance(reference_text, str):
+    #    reference_text = tuple(reference_text)
     return inner_func(reference_text, input_segments)
 
 
 def align_original_to_parody(
     parody_line: list[AnalyzedWordItem], original_line: list[AnalyzedWordItem]
 ) -> list[AlignedMora]:
-    input_moras = []
+    parody_moras = []
     is_parody_word_starts = []
     is_parody_word_ends = []
     parody_word_surfaces = []
     for word in parody_line:
         moras = jamorasep.parse(word.pronunciation)
-        input_moras += moras
+        parody_moras += moras
         is_parody_word_starts += [True] + [False] * (len(moras) - 1)
         is_parody_word_ends += [False] * (len(moras) - 1) + [True]
         parody_word_surfaces += [word.surface] * len(moras)
-    reference_moras = []
+    original_moras = []
     is_original_phrase_starts = []
     is_original_phrase_ends = []
     is_original_word_starts = []
@@ -142,7 +152,7 @@ def align_original_to_parody(
     original_word_surfaces = []
     for word in original_line:
         moras = jamorasep.parse(word.pronunciation)
-        reference_moras += moras
+        original_moras += moras
         original_word_surfaces += [word.surface] * len(moras)
         if word.is_phrase_start:
             is_original_phrase_starts += [True] + [False] * (len(moras) - 1)
@@ -158,17 +168,17 @@ def align_original_to_parody(
         is_original_word_ends += [False] * (len(moras) - 1) + [True]
 
     dist, correspondance = find_correspondance(
-        reference_moras, input_moras, eval_vowel_consonant_distance
+        original_moras, parody_moras, eval_vowel_consonant_distance
     )
     results = []
     for i, (start, end) in enumerate(correspondance):
-        parody_mora = input_moras[i]
+        parody_mora = parody_moras[i]
         is_parody_word_start = is_parody_word_starts[i]
         is_parody_word_end = is_parody_word_ends[i]
         parody_word_surface = ""
         if is_parody_word_start and parody_mora:
             parody_word_surface = parody_word_surfaces[i]
-        original_mora = reference_moras[start:end]
+        original_mora = original_moras[start:end]
         if start == end:
             is_original_phrase_start = False
             is_original_phrase_end = False
@@ -217,17 +227,17 @@ def align_original_to_parody(
 def align_parody_to_original(
     parody_line: list[AnalyzedWordItem], original_line: list[AnalyzedWordItem]
 ) -> list[AlignedMora]:
-    input_moras = []
+    parody_moras = []
     is_parody_word_starts = []
     is_parody_word_ends = []
     parody_word_surfaces = []
     for word in parody_line:
         moras = jamorasep.parse(word.pronunciation)
-        input_moras += moras
+        parody_moras += moras
         is_parody_word_starts += [True] + [False] * (len(moras) - 1)
         is_parody_word_ends += [False] * (len(moras) - 1) + [True]
         parody_word_surfaces += [word.surface] * len(moras)
-    reference_moras = []
+    original_moras = []
     is_original_phrase_starts = []
     is_original_phrase_ends = []
     is_original_word_starts = []
@@ -235,7 +245,7 @@ def align_parody_to_original(
     original_word_surfaces = []
     for word in original_line:
         moras = jamorasep.parse(word.pronunciation)
-        reference_moras += moras
+        original_moras += moras
         original_word_surfaces += [word.surface] * len(moras)
         if word.is_phrase_start:
             is_original_phrase_starts += [True] + [False] * (len(moras) - 1)
@@ -251,11 +261,11 @@ def align_parody_to_original(
         is_original_word_ends += [False] * (len(moras) - 1) + [True]
 
     dist, correspondance = find_correspondance(
-        input_moras, reference_moras, eval_vowel_consonant_distance
+        parody_moras, original_moras, eval_vowel_consonant_distance
     )
     results = []
     for i, (start, end) in enumerate(correspondance):
-        original_mora = reference_moras[i]
+        original_mora = original_moras[i]
         is_original_word_start = is_original_word_starts[i]
         is_original_word_end = is_original_word_ends[i]
         is_original_phrase_start = is_original_phrase_starts[i]
@@ -264,7 +274,7 @@ def align_parody_to_original(
         if is_original_word_start and original_mora:
             original_word_surface = original_word_surfaces[i]
 
-        parody_mora = input_moras[start:end]
+        parody_mora = parody_moras[start:end]
         if start == end:
             is_parody_word_start = False
             is_parody_word_end = False
