@@ -168,7 +168,7 @@ def align_original_to_parody(
         is_original_word_ends += [False] * (len(moras) - 1) + [True]
 
     dist, correspondance = find_correspondance(
-        original_moras, parody_moras, eval_vowel_consonant_distance
+        original_moras, [[mora] for mora in parody_moras], eval_vowel_consonant_distance
     )
     results = []
     for i, (start, end) in enumerate(correspondance):
@@ -261,7 +261,7 @@ def align_parody_to_original(
         is_original_word_ends += [False] * (len(moras) - 1) + [True]
 
     dist, correspondance = find_correspondance(
-        parody_moras, original_moras, eval_vowel_consonant_distance
+        parody_moras, [[mora] for mora in original_moras], eval_vowel_consonant_distance
     )
     results = []
     for i, (start, end) in enumerate(correspondance):

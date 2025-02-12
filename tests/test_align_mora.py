@@ -68,6 +68,24 @@ def test_find_correspondance():
         ("サン", "マ"),
         ("キイ", "チ"),
     ]
+    result = wrapper(
+        "アンネモトレモンリンオンユケニーレイボーン", "アレモコレモミリョクテキデモ"
+    )
+    assert result == [
+        ("アン", "ア"),
+        ("ネ", "レ"),
+        ("モ", "モ"),
+        ("ト", "コ"),
+        ("レ", "レ"),
+        ("モン", "モ"),
+        ("リン", "ミ"),
+        ("オン", "リョ"),
+        ("ユ", "ク"),
+        ("ケ", "テ"),
+        ("ニー", "キ"),
+        ("レイ", "デ"),
+        ("ボーン", "モ"),
+    ]
 
 
 def test_align_analyzed_lyrics():
@@ -84,8 +102,8 @@ def test_align_analyzed_lyrics():
         original_mora="ア",
         parody_vowel="a",
         original_vowel="a",
-        parody_consonant="",
-        original_consonant="",
+        parody_consonant="sp",
+        original_consonant="sp",
         is_parody_word_start=True,
         is_parody_word_end=False,
         is_original_phrase_start=True,
@@ -153,17 +171,17 @@ def test_align_analyzed_lyrics():
 
     assert results[4] == AlignedMora(
         parody_mora="ー",
-        original_mora="",
+        original_mora="ウ",
         parody_vowel=":",
-        original_vowel="",
-        parody_consonant="",
-        original_consonant="",
+        original_vowel="u",
+        parody_consonant="sp",
+        original_consonant="sp",
         is_parody_word_start=False,
         is_parody_word_end=False,
         is_original_phrase_start=False,
-        is_original_phrase_end=False,
+        is_original_phrase_end=True,
         is_original_word_start=False,
-        is_original_word_end=False,
+        is_original_word_end=True,
         line_id="0",
         parody_word_surface="",
         original_word_surface="",
@@ -171,16 +189,16 @@ def test_align_analyzed_lyrics():
 
     assert results[5] == AlignedMora(
         parody_mora="ン",
-        original_mora="ウ",
+        original_mora="",
         parody_vowel="N",
-        original_vowel="u",
-        parody_consonant="",
+        original_vowel="",
+        parody_consonant="sp",
         original_consonant="",
         is_parody_word_start=False,
         is_parody_word_end=True,
-        is_original_phrase_start=False,
+        is_original_phrase_start=True,
         is_original_phrase_end=True,
-        is_original_word_start=False,
+        is_original_word_start=True,
         is_original_word_end=True,
         line_id="0",
         parody_word_surface="",
@@ -192,7 +210,7 @@ def test_align_analyzed_lyrics():
         original_mora="キ",
         parody_vowel="i",
         original_vowel="i",
-        parody_consonant="",
+        parody_consonant="sp",
         original_consonant="kj",
         is_parody_word_start=True,
         is_parody_word_end=False,
@@ -264,7 +282,7 @@ def test_align_analyzed_lyrics():
         original_mora="",
         parody_vowel="u",
         original_vowel="",
-        parody_consonant="",
+        parody_consonant="sp",
         original_consonant="",
         is_parody_word_start=False,
         is_parody_word_end=True,
@@ -319,7 +337,7 @@ def test_align_analyzed_lyrics():
         parody_vowel="o",
         original_vowel="o",
         parody_consonant="n",
-        original_consonant="",
+        original_consonant="sp",
         is_parody_word_start=False,
         is_parody_word_end=True,
         is_original_phrase_start=False,
@@ -398,3 +416,21 @@ def test_align_analyzed_lyrics():
     idx = 2
     assert results[idx].parody_mora == "ト"
     assert results[idx].original_mora == "ヨ"
+
+
+def test_tmp():
+    text = """
+    安 根元 レモン 林恩宇 ケニー・レイボーン
+    アン ネモト レモン リンオンユ ケニーレイボーン
+    あれ も これ も 魅力 的 で も
+    アレ/p モ コレ/p モ ミリョク/p テキ デ モ"""
+    analyzed_lyrics = AnalyzedLyrics.from_text(text)
+    from soramimi_align.align_mora import align_parody_to_original
+
+    results = align_parody_to_original(
+        analyzed_lyrics.parody[0], analyzed_lyrics.original[0]
+    )
+
+    for amora in results:
+        print(amora.parody_mora, amora.original_mora)
+    # assert False
