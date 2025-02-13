@@ -316,3 +316,23 @@ class AlignedMora:
     original_consonant: str = ""
     parody_word_surface: str = ""
     original_word_surface: str = ""
+
+
+@dataclass
+class PhoneticSearchQuery:
+    query_id: str
+    query: str
+    positive: list[str]
+
+
+@dataclass
+class PhoneticSearchWord:
+    word_id: str
+    word: str
+
+
+@dataclass
+class PhoneticSearchDataset:
+    queries: list[PhoneticSearchQuery]
+    words: list[PhoneticSearchWord]
+    metadata: dict[str, Any] | None = None

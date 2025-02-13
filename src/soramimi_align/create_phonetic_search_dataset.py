@@ -2,30 +2,16 @@ import argparse
 import json
 import re
 from collections import Counter, defaultdict
+from dataclasses import asdict
 
 import pandas as pd
 
-from soramimi_align.schemas import AlignedMora
-
-# argparseを使ってコマンドライン引数を処理
-parser = argparse.ArgumentParser(
-    description="Process CSV files for phonetic search dataset."
+from soramimi_align.schemas import (
+    AlignedMora,
+    PhoneticSearchDataset,
+    PhoneticSearchQuery,
+    PhoneticSearchWord,
 )
-parser.add_argument(
-    "-w",
-    "--word_table_path",
-    type=str,
-    required=True,
-    help="Path to the word_table.csv file",
-)
-parser.add_argument(
-    "-a",
-    "--aligned_words_path",
-    type=str,
-    required=True,
-    help="Path to the aligned_words.csv file",
-)
-args = parser.parse_args()
 
 
 # baseball.csvの処理
@@ -76,15 +62,20 @@ def count_conversion(aligned_words: list[AlignedMora]) -> dict[tuple, Counter]:
     return count_dict
 
 
-def create_query_dataset(count_dict: dict[tuple, Counter]) -> dict[str, list[str]]:
-    filtered_count_dict = {}
-    for (
-        original_word,
-        is_original_word_start,
-        is_original_phrase_start,
-        is_original_word_end,
-        is_original_phrase_end,
-    ), v in count_dict.items():
+def create_phonetic_search_queries(
+    count_dict: dict[tuple, Counter],
+) -> list[PhoneticSearchQuery]:
+    queries = []
+    for idx, (
+        (
+            original_word,
+            is_original_word_start,
+            is_original_phrase_start,
+            is_original_word_end,
+            is_original_phrase_end,
+        ),
+        v,
+    ) in enumerate(count_dict.items()):
         if not (is_original_phrase_start and is_original_word_end):
             continue
         if len(original_word) < 2:
@@ -97,43 +88,60 @@ def create_query_dataset(count_dict: dict[tuple, Counter]) -> dict[str, list[str
         if not parody_words:
             continue
 
-        filtered_count_dict[original_word] = parody_words
+        phonetic_search_query = PhoneticSearchQuery(
+            query_id=f"query_{str(idx).zfill(5)}",
+            query=original_word,
+            positive=parody_words,
+        )
+        queries.append(phonetic_search_query)
 
-    return filtered_count_dict
+    return queries
 
 
 def combine_query_and_words(
-    query_dataset: dict[str, list[str]], wordlist: list[str]
-) -> dict[str, list]:
+    queries: list[PhoneticSearchQuery], wordlist: list[str]
+) -> PhoneticSearchDataset:
     wordset = set(wordlist)
-    queries = []
-    for idx, (query, parody_words) in enumerate(query_dataset.items()):
+
+    for i in range(len(queries)):
         # wordsetに含まれるものだけ取得
-        positive_words = [w for w in parody_words if w in wordset and w != query]
+        query = queries[i]
+        positive_words = [
+            w for w in query.positive if w in wordset and w != query.query
+        ]
 
         # queryと同一のparody_wordは無条件で1位にする
-        if query in wordset:
-            words = [query] + positive_words
+        if query.query in wordset:
+            positive_words = [query.query] + positive_words
 
-        queries.append(
-            {
-                "query_id": idx,
-                "query": query,
-                "positive": positive_words,
-            }
+        queries[i].positive = positive_words
+
+    phonetic_search_words = [
+        PhoneticSearchWord(
+            word_id=f"word_{str(i).zfill(5)}",
+            word=word,
         )
+        for i, word in enumerate(wordlist)
+    ]
 
-    return {"queries": queries, "wordlist": wordlist}
+    metadata = {
+        "query_count": len(queries),
+        "wordlist_count": len(wordlist),
+    }
+
+    return PhoneticSearchDataset(
+        queries=queries, words=phonetic_search_words, metadata=metadata
+    )
 
 
 def create_phonetic_search_dataset(
     word_table_path: str, aligned_words_path: str
-) -> dict[str, list]:
+) -> PhoneticSearchDataset:
     wordlist = load_unique_wordlist(word_table_path)
     aligned_words = load_aligned_words(aligned_words_path)
     count_dict = count_conversion(aligned_words)
-    query_dataset = create_query_dataset(count_dict)
-    return combine_query_and_words(query_dataset, wordlist)
+    queries = create_phonetic_search_queries(count_dict)
+    return combine_query_and_words(queries, wordlist)
 
 
 def main():
@@ -166,7 +174,7 @@ def main():
     )
 
     with open(args.output_path, "w") as f:
-        json.dump(dataset, f, ensure_ascii=False, indent=2)
+        json.dump(asdict(dataset), f, ensure_ascii=False, indent=2)
 
 
 if __name__ == "__main__":
