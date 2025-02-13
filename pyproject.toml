@@ -60,3 +60,15 @@ align_word_sample = """
     -i data/output/sample_draft.txt \
     -o data/output/sample_word.csv
     """
+create_psd_sample = """
+    python src/soramimi_align/create_phonetic_search_dataset.py \
+    -w data/input/worddict/baseball.csv \
+    -a data/output/aligned_words.csv \
+    -o data/output/sample_phonetic_search_dataset.json
+    """
+
+evaluate_psd_sample = """
+    python src/soramimi_align/evaluate_phonetic_search_dataset.py \
+    -i data/output/sample_phonetic_search_dataset.json \
+    -v
+    """
