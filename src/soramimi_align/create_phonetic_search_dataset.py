@@ -10,7 +10,6 @@ from soramimi_align.schemas import (
     AlignedMora,
     PhoneticSearchDataset,
     PhoneticSearchQuery,
-    PhoneticSearchWord,
 )
 
 
@@ -83,13 +82,12 @@ def create_phonetic_search_queries(
 
         v.pop("total")
         parody_words = sorted(v.items(), key=lambda item: item[1], reverse=True)
-        parody_words = [parody_word for parody_word, count in parody_words if count > 1]
+        parody_words = [parody_word for parody_word, count in parody_words if count > 2]
 
         if not parody_words:
             continue
 
         phonetic_search_query = PhoneticSearchQuery(
-            query_id=f"query_{str(idx).zfill(5)}",
             query=original_word,
             positive=parody_words,
         )
@@ -116,22 +114,12 @@ def combine_query_and_words(
 
         queries[i].positive = positive_words
 
-    phonetic_search_words = [
-        PhoneticSearchWord(
-            word_id=f"word_{str(i).zfill(5)}",
-            word=word,
-        )
-        for i, word in enumerate(wordlist)
-    ]
-
     metadata = {
         "query_count": len(queries),
         "wordlist_count": len(wordlist),
     }
 
-    return PhoneticSearchDataset(
-        queries=queries, words=phonetic_search_words, metadata=metadata
-    )
+    return PhoneticSearchDataset(queries=queries, words=wordlist, metadata=metadata)
 
 
 def create_phonetic_search_dataset(

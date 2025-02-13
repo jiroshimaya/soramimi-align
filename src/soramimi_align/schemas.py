@@ -320,19 +320,19 @@ class AlignedMora:
 
 @dataclass
 class PhoneticSearchQuery:
-    query_id: str
     query: str
     positive: list[str]
 
 
 @dataclass
-class PhoneticSearchWord:
-    word_id: str
-    word: str
-
-
-@dataclass
 class PhoneticSearchDataset:
     queries: list[PhoneticSearchQuery]
-    words: list[PhoneticSearchWord]
-    metadata: dict[str, Any] | None = None
+    words: list[str]
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "PhoneticSearchDataset":
+        queries = [PhoneticSearchQuery(**query) for query in data["queries"]]
+        words = data["words"]
+        metadata = data.get("metadata", {})
+        return cls(queries=queries, words=words, metadata=metadata)
