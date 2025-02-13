@@ -55,3 +55,8 @@ align_mora_sample = """
     -i data/output/sample_draft.txt \
     -o data/output/sample_mora.csv
     """
+align_word_sample = """
+    python src/soramimi_align/align_word.py \
+    -i data/output/sample_draft.txt \
+    -o data/output/sample_word.csv
+    """

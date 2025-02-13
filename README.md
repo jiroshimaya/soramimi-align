@@ -8,11 +8,13 @@
 uv run task make_draft_sample
 # モウラのアライン
 uv run task align_mora_sample
+# 単語のアライン
+uv run task align_word_sample
 ```
 
 ## 入出力例
 
-最終的にほしい出力は`sample_mora.csv`ですが、読みや文節位置などの推定失敗を修正しやすいように、`sample_draft.txt`の生成を間に挟みます。
+最終的にほしい出力はaling_mora.pyやalign_word.pyの出力ですが、読みや文節位置などの推定失敗を修正しやすいように、make_draft.pyの出力を途中に挟みます。
 
 - 替え歌歌詞元ファイル
 
@@ -116,6 +118,21 @@ parody_mora,is_parody_word_start,is_parody_word_end,original_mora,is_original_ph
 ウ,False,True,,False,True,False,True,3,data/output/sample_draft.txt,u,,,,,
 ```
 
+- align_word.pyの出力（シューメーカー、クマノヒロミツの対応付けは少しミスっている）
+
+```:sample_word.py
+parody_mora,is_parody_word_start,is_parody_word_end,original_mora,is_original_phrase_start,is_original_phrase_end,is_original_word_start,is_original_word_end,line_id,input_file_path,parody_vowel,original_vowel,parody_consonant,original_consonant,parody_word_surface,original_word_surface
+ウサミ,True,True,ウサギ,True,True,True,True,0,data/output/sample_draft.txt,,,,,宇佐美,うさぎ
+コイシヒロタカ,True,True,オイシカノヤマ,True,True,True,True,0,data/output/sample_draft.txt,,,,,小石博孝,追いしかの山
+コヅカ,True,True,コブナ,True,True,True,True,1,data/output/sample_draft.txt,,,,,小塚,コブナ
+ツジイサオ,True,True,ツリシカノ,True,True,True,True,1,data/output/sample_draft.txt,,,,,辻勇夫,釣りしかの
+カワ,True,True,カワ,True,True,True,True,1,data/output/sample_draft.txt,,,,,河,川
+シューメーカー,True,True,ユメワイ,True,False,True,False,2,data/output/sample_draft.txt,,,,,シューメーカー,夢は今
+クマノヒロミツ,True,True,マモメグリテ,False,True,False,True,2,data/output/sample_draft.txt,,,,,熊野輝光,今もめぐりて
+ナツメタカシ,True,True,ワスレガタキ,True,True,True,True,3,data/output/sample_draft.txt,,,,,夏目隆司,忘れがたき
+フルタ,True,True,フルサ,True,False,True,False,3,data/output/sample_draft.txt,,,,,古田,ふるさと
+ソウ,True,True,ト,False,True,False,True,3,data/output/sample_draft.txt,,,,,荘,ふるさと
+```
 
 
 # 開発者向け
