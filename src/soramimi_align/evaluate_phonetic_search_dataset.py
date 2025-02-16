@@ -1,6 +1,6 @@
 import argparse
 import json
-from typing import Callable
+from typing import Any, Callable
 
 import editdistance as ed
 import jamorasep
@@ -37,7 +37,7 @@ def rank_by_mora_editdistance(
 
 
 def rank_by_vowel_consonant_editdistance(
-    query_texts: list[str], wordlist_texts: list[str]
+    query_texts: list[str], wordlist_texts: list[str], vowel_ratio: float = 0.5
 ) -> list[list[str]]:
     query_moras = [
         jamorasep.parse(text, output_format="simple-ipa") for text in query_texts
@@ -62,7 +62,9 @@ def rank_by_vowel_consonant_editdistance(
         ):
             vowel_distance = ed.eval(query_vowel, wordlist_vowel)
             consonant_distance = ed.eval(query_consonant, wordlist_consonant)
-            distance = vowel_distance * 10 + consonant_distance
+            distance = vowel_distance * vowel_ratio + consonant_distance * (
+                1 - vowel_ratio
+            )
             scores.append(distance)
 
         ranked_wordlist = [
@@ -100,7 +102,7 @@ def rank_by_kanasim(
     all_scores = kana_distance_calculator.calculate_batch(query_texts, wordlist_texts)
 
     ranked_wordlists = []
-    for query_text, scores in zip(query_texts, all_scores):
+    for scores in all_scores:
         ranked_wordlist = [
             word for word, _ in sorted(zip(wordlist_texts, scores), key=lambda x: x[1])
         ]
@@ -112,23 +114,24 @@ def rank_by_kanasim(
 def rank_dataset(
     phonetic_search_dataset: PhoneticSearchDataset,
     rank_func: Callable[[list[str], list[str]], list[list[str]]],
-    topn: int = 10,
+    rank_func_kwargs: dict[str, Any] = {},
 ) -> list[list[str]]:
     query_texts = [query.query for query in phonetic_search_dataset.queries]
     wordlist_texts = phonetic_search_dataset.words
 
-    ranked_wordlists = rank_func(query_texts, wordlist_texts)
-    topn_wordlists = [ranked_wordlist[:topn] for ranked_wordlist in ranked_wordlists]
+    ranked_wordlists = rank_func(query_texts, wordlist_texts, **rank_func_kwargs)
 
-    return topn_wordlists
+    return ranked_wordlists
 
 
 def calculate_recall(
     ranked_wordlists: list[list[str]],
     positive_texts: list[list[str]],
+    topn: int = 10,
 ) -> float:
     recalls = []
-    for topn_wordlist, positive_text in zip(ranked_wordlists, positive_texts):
+    for wordlist, positive_text in zip(ranked_wordlists, positive_texts):
+        topn_wordlist = wordlist[:topn]
         positive_text_count = len(positive_text)
         hit_count = len(set(topn_wordlist) & set(positive_text))
         recall = hit_count / positive_text_count
@@ -152,19 +155,48 @@ def main():
         action="store_true",
         help="Verbose output",
     )
+    parser.add_argument(
+        "-r",
+        "--rank_func",
+        type=str,
+        choices=["kanasim", "vowel_consonant", "phoneme"],
+        default="vowel_consonant",
+        help="Rank function: kanasim, vowel_consonant, phoneme",
+    )
+    parser.add_argument(
+        "-t",
+        "--topn",
+        type=int,
+        default=10,
+        help="Top N",
+    )
+    parser.add_argument(
+        "-vr",
+        "--vowel_ratio",
+        type=float,
+        default=0.5,
+        help="Vowel ratio, which is used only when rank_func is vowel_consonant",
+    )
     args = parser.parse_args()
 
     dataset = load_phonetic_search_dataset(args.input_path)
-    topn_wordlists = rank_dataset(dataset, rank_by_kanasim)
-    # topn_wordlists = rank_dataset(dataset, rank_by_vowel_consonant_editdistance)
-    # topn_wordlists = rank_dataset(dataset, rank_by_phoneme_editdistance)
+    if args.rank_func == "kanasim":
+        ranked_wordlists = rank_dataset(dataset, rank_by_kanasim)
+    elif args.rank_func == "vowel_consonant":
+        ranked_wordlists = rank_dataset(
+            dataset,
+            rank_by_vowel_consonant_editdistance,
+            {"vowel_ratio": args.vowel_ratio},
+        )
+    elif args.rank_func == "phoneme":
+        ranked_wordlists = rank_dataset(dataset, rank_by_phoneme_editdistance)
 
     positive_texts = [query.positive for query in dataset.queries]
-    recall = calculate_recall(topn_wordlists, positive_texts)
+    recall = calculate_recall(ranked_wordlists, positive_texts, args.topn)
     if args.verbose:
-        for query, topn_wordlist in zip(dataset.queries, topn_wordlists):
+        for query, wordlist in zip(dataset.queries, ranked_wordlists):
             print(f"Query: {query.query}")
-            print(f"Top {len(topn_wordlist)}: {topn_wordlist}")
+            print(f"Top {args.topn}: {wordlist[: args.topn]}")
             print(f"Positive: {query.positive}")
             print()
 

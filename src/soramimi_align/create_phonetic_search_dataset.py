@@ -114,6 +114,8 @@ def combine_query_and_words(
 
         queries[i].positive = positive_words
 
+    queries.sort(key=lambda query: query.query)
+
     metadata = {
         "query_count": len(queries),
         "wordlist_count": len(wordlist),
