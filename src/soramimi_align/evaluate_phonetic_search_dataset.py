@@ -95,9 +95,9 @@ def rank_by_phoneme_editdistance(
 
 
 def rank_by_kanasim(
-    query_texts: list[str], wordlist_texts: list[str]
+    query_texts: list[str], wordlist_texts: list[str], **kwargs
 ) -> list[list[str]]:
-    kana_distance_calculator = create_kana_distance_calculator()
+    kana_distance_calculator = create_kana_distance_calculator(**kwargs)
 
     all_scores = kana_distance_calculator.calculate_batch(query_texts, wordlist_texts)
 
@@ -159,9 +159,9 @@ def main():
         "-r",
         "--rank_func",
         type=str,
-        choices=["kanasim", "vowel_consonant", "phoneme"],
+        choices=["kanasim", "vowel_consonant", "phoneme", "mora"],
         default="vowel_consonant",
-        help="Rank function: kanasim, vowel_consonant, phoneme",
+        help="Rank function: kanasim, vowel_consonant, phoneme, mora",
     )
     parser.add_argument(
         "-t",
@@ -181,7 +181,16 @@ def main():
 
     dataset = load_phonetic_search_dataset(args.input_path)
     if args.rank_func == "kanasim":
-        ranked_wordlists = rank_dataset(dataset, rank_by_kanasim)
+        ranked_wordlists = rank_dataset(
+            dataset,
+            rank_by_kanasim,
+            {"vowel_ratio": args.vowel_ratio},
+        )
+    elif args.rank_func == "mora":
+        ranked_wordlists = rank_dataset(
+            dataset,
+            rank_by_mora_editdistance,
+        )
     elif args.rank_func == "vowel_consonant":
         ranked_wordlists = rank_dataset(
             dataset,
