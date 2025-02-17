@@ -14,7 +14,7 @@ dependencies = [
     "jaconv>=0.4.0",
     "jamorasep>=0.0.1",
     "jasyllablesep>=0.0.0",
-    "kanasim>=0.0.3",
+    "kanasim>=0.0.4",
     "mecab-python3>=1.0.10",
     "pandas>=2.2.3",
     "pyopenjtalk>=0.4.0",
@@ -72,5 +72,5 @@ create_psd_sample = """
 evaluate_psd_sample = """
     python src/soramimi_align/evaluate_phonetic_search_dataset.py \
     -i data/output/sample_phonetic_search_dataset.json \
-    -v
+    -v -r kanasim -vr 0.8
     """
