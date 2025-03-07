@@ -269,7 +269,7 @@ def get_default_output_path(
     input_path_lib = Path(input_path)
     suffix = f"_{rank_func}_top{topn}"
     if rerank:
-        suffix += "_reranked_top{rerank_topn}_model{rerank_model_name}"
+        suffix += f"_reranked_top{rerank_topn}_model{rerank_model_name}"
     return str(input_path_lib.parent / f"{input_path_lib.stem}{suffix}.json")
 
 
@@ -383,13 +383,6 @@ def main():
         ranked_wordlists = reranked_wordlists
     positive_texts = [query.positive for query in dataset.queries]
     recall = calculate_recall(ranked_wordlists, positive_texts, args.topn)
-    if args.verbose:
-        for query, wordlist in zip(dataset.queries, ranked_wordlists):
-            print(f"Query: {query.query}")
-            print(f"Top {args.topn}: {wordlist[: args.topn]}")
-            print(f"Positive: {query.positive}")
-            print()
-
     print("Recall: ", recall)
 
     if args.output_file_path:
