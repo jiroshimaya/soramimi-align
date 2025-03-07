@@ -1,6 +1,9 @@
 from pydantic import BaseModel
 
-from soramimi_align.evaluate_phonetic_search_dataset import get_structured_outputs
+from soramimi_align.evaluate_phonetic_search_dataset import (
+    get_default_output_path,
+    get_structured_outputs,
+)
 
 
 def test_get_structured_outputs():
@@ -26,3 +29,29 @@ def test_get_structured_outputs():
     # 結果の検証
     assert responses[0] == Person(name="Taro", age=20)
     assert responses[1] == Person(name="Jiro", age=10)
+
+
+def test_get_default_output_path():
+    # 基本的なケース（rerankなし）
+    assert (
+        get_default_output_path(
+            input_path="data/test.json",
+            rank_func="vowel_consonant",
+            topn=10,
+            rerank=False,
+        )
+        == "data/test_vowel_consonant_top10.json"
+    )
+
+    # rerankありのケース
+    assert (
+        get_default_output_path(
+            input_path="data/test.json",
+            rank_func="vowel_consonant",
+            topn=10,
+            rerank=True,
+            rerank_topn=50,
+            rerank_model_name="gpt-4",
+        )
+        == "data/test_vowel_consonant_top10_reranked_top50_modelgpt-4.json"
+    )
